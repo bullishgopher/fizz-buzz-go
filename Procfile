@@ -1,0 +1,1 @@
+web: ./main -e dev
