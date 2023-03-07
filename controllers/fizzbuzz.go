@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"os"
 
@@ -13,19 +14,26 @@ type fizzbuzzBody struct {
 	Count int `json:"count"`
 }
 
-func Fizzbuzz(n int) string {
+var ErrEnv = errors.New("cannot find environment variable")
+
+func Fizzbuzz(n int) (string, error) {
 
 	var name string = ""
+	fizz := os.Getenv("Fizz")
+	buzz := os.Getenv("Buzz")
+	if fizz == "" || buzz == "" {
+		return "", ErrEnv
+	}
 
 	if n%3 == 0 {
-		name = os.Getenv("Fizz")
+		name = fizz
 	}
 
 	if n%5 == 0 {
-		name += os.Getenv("Buzz")
+		name += buzz
 	}
 
-	return name
+	return name, nil
 }
 
 // Status godoc
@@ -38,11 +46,24 @@ func (h FizzBuzzController) FizzBuzz(c *gin.Context) {
 	var newCount fizzbuzzBody
 
 	if err := c.BindJSON(&newCount); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  http.StatusBadRequest,
+			"message": "Input correct number",
+		})
+		return
+	}
+
+	res, resErr := Fizzbuzz(newCount.Count)
+	if resErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "Server error",
+		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
-		"message": Fizzbuzz(newCount.Count),
+		"message": res,
 	})
 }
