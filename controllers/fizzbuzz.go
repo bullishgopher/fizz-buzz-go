@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,6 +55,39 @@ func (h FizzBuzzController) FizzBuzz(c *gin.Context) {
 	}
 
 	res, resErr := Fizzbuzz(newCount.Count)
+	if resErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "Server error",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": res,
+	})
+}
+
+// Status godoc
+// @Summary Get a fizzbuzz message
+// @Description Get a fizzbuzz message
+// @Produce  json
+// @Success 200 {object} message
+// @Router /fizzbuzz/messages [get]
+func (h FizzBuzzController) GetMessageByCount(c *gin.Context) {
+	count := c.Query("count")
+
+	countVal, countErr := strconv.Atoi(count)
+	if countErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  http.StatusBadRequest,
+			"message": "Input correct number",
+		})
+		return
+	}
+
+	res, resErr := Fizzbuzz(countVal)
 	if resErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  http.StatusInternalServerError,

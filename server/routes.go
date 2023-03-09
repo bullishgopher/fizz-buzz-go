@@ -32,6 +32,7 @@ func SetupRouter() *gin.Engine {
 	fizzbuzz := router.Group("fizzbuzz")
 	{
 		fizz := new(controllers.FizzBuzzController)
+		fizzbuzz.GET("/messages", fizz.GetMessageByCount)
 		fizzbuzz.POST("/fizzbuzz", fizz.FizzBuzz)
 	}
 
